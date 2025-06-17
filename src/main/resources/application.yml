@@ -1,0 +1,99 @@
+# =================================
+# ESG Config Service 설정
+# 역할: 중앙집중식 설정 관리 (로컬 파일 시스템 기반)
+# 포트: 8888
+# =================================
+
+server:
+  port: 8888
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+
+spring:
+  application:
+    name: config-service
+
+  # =================================
+  # Spring Cloud Config Server 설정 (Native 방식)
+  # =================================
+  profiles:
+    active: native # Git 대신 로컬 파일 시스템 사용
+
+  cloud:
+    config:
+      server:
+        # 로컬 파일 시스템에서 설정 읽기
+        native:
+          search-locations:
+            - "file:../config-yml/" # 상위 폴더의 config-yml
+            - "classpath:/config/" # 백업용 classpath
+
+        # 기본 설정
+        default-application-name: application
+        default-profile: default
+
+        # 헬스체크 활성화
+        health:
+          enabled: true
+
+  # =================================
+  # 보안 설정 (선택사항)
+  # =================================
+  security:
+    user:
+      name: ${CONFIG_USERNAME:config-admin}
+      password: ${CONFIG_PASSWORD:config-secret}
+      roles: ADMIN
+
+# =================================
+# Eureka Client 설정
+# =================================
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+    registry-fetch-interval-seconds: 30
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+    metadata-map:
+      version: "1.0.0"
+      description: "ESG Config Server - 로컬 파일 기반"
+
+# =================================
+# Actuator 모니터링 설정
+# =================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,refresh,env
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+    refresh:
+      enabled: true
+  info:
+    env:
+      enabled: true
+
+# =================================
+# 로깅 설정
+# =================================
+logging:
+  level:
+    root: INFO
+    org.springframework.cloud.config: DEBUG
+    com.nsmm.esg.config_service: DEBUG
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/config-service.log
+    max-size: 10MB
+    max-history: 30
