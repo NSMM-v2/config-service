@@ -1,6 +1,6 @@
 # =================================
 # ESG Config Service 설정
-# 역할: 중앙집중식 설정 관리 (로컬 파일 시스템 기반)
+# 역할: 중앙집중식 설정 관리 (Git 기반)
 # 포트: 8888
 # =================================
 
@@ -16,19 +16,19 @@ spring:
     name: config-service
 
   # =================================
-  # Spring Cloud Config Server 설정 (Native 방식)
+  # Spring Cloud Config Server 설정 (Git 방식)
   # =================================
-  profiles:
-    active: native # Git 대신 로컬 파일 시스템 사용
-
   cloud:
     config:
       server:
-        # 로컬 파일 시스템에서 설정 읽기
-        native:
-          search-locations:
-            - "file:../config-yml/" # 상위 폴더의 config-yml
-            - "classpath:/config/" # 백업용 classpath
+        # Git 저장소에서 설정 읽기
+        git:
+          uri: ${GIT_URL}
+          username: ${GIT_ID}
+          password: ${GIT_TOKEN}
+          clone-on-start: true
+          timeout: 10
+          refresh-rate: 60
 
         # 기본 설정
         default-application-name: application
@@ -37,15 +37,6 @@ spring:
         # 헬스체크 활성화
         health:
           enabled: true
-
-  # =================================
-  # 보안 설정 (선택사항)
-  # =================================
-  security:
-    user:
-      name: ${CONFIG_USERNAME:config-admin}
-      password: ${CONFIG_PASSWORD:config-secret}
-      roles: ADMIN
 
 # =================================
 # Eureka Client 설정
@@ -63,7 +54,7 @@ eureka:
     lease-expiration-duration-in-seconds: 90
     metadata-map:
       version: "1.0.0"
-      description: "ESG Config Server - 로컬 파일 기반"
+      description: "ESG Config Server - Git 기반"
 
 # =================================
 # Actuator 모니터링 설정
@@ -72,13 +63,11 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,refresh,env
+        include: health,info,metrics,env
       base-path: /actuator
   endpoint:
     health:
       show-details: always
-    refresh:
-      enabled: true
   info:
     env:
       enabled: true
