@@ -1,4 +1,4 @@
-package com.nsmm.esg.config_service;
+package com.nsmm.esg.dart_service.dart_service.config_service;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
